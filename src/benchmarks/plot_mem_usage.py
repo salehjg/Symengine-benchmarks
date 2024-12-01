@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import datetime
 import matplotlib.dates as mdates
 
-def plot_mem_usage(files):
+def plot_mem_usage(files, title):
     # Metrics and their subplot indices
     metrics = [
         "Memory Usage",
@@ -73,16 +73,20 @@ def plot_mem_usage(files):
         ax.grid(True)
 
     axes[-1].set_xlabel("Date-Time")  # Set xlabel only for the last subplot
-    axes[-1].xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d %H:%M'))
+    axes[-1].xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d %H:%M:%S'))  # Include seconds in the format
     axes[-1].xaxis.set_major_locator(mdates.AutoDateLocator())
     plt.setp(axes[-1].xaxis.get_majorticklabels(), rotation=45, ha="right")  # Rotate x-ticks for readability
 
-    plt.tight_layout()
+    # Add figure title
+    fig.suptitle(title, fontsize=16, fontweight='bold')
+
+    plt.tight_layout(rect=[0, 0, 1, 0.95])  # Adjust layout to make room for the suptitle
     plt.show()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Plot memory usage from multiple files.')
     parser.add_argument('--file', type=str, action='append', required=True, help='List of files to plot')
+    parser.add_argument('--title', type=str, default=None, required=True, help='Title for the figure')
     args = parser.parse_args()
     print(f"Files to process: {args.file}")
-    plot_mem_usage(args.file)
+    plot_mem_usage(args.file, args.title)
