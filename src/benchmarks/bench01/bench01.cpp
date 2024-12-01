@@ -44,7 +44,8 @@ void bench01::Workload() {
                 );
                 expr = SymEngine::add(expr, SymEngine::pow(base, SymEngine::integer(get_random_integer(1, cfg_P))));
             }
-            exprs.push_back(SymEngine::expand(expr));
+            //exprs.push_back(SymEngine::expand(expr));
+            exprs.push_back(expr);
         }
     }
 
@@ -58,6 +59,7 @@ void bench01::Workload() {
             auto data = exprs[i]->dumps();
             file.write(data.c_str(), data.size());
             file.close();
+            std::cout << "expr_" << i << " size: " << data.size() << " has been saved" << std::endl;
         }
     }
 
@@ -72,12 +74,25 @@ void bench01::Workload() {
     {
         mem_usage_tracker mem_expr_load(SAMPLING_INTERVAL_MS, 100, "mem_usage_" + name + ".expr_load.txt", true);
         for (size_t i = 0; i < cfg_N; i++) {
-            // load the binary file and load the data as binary
             auto file = std::ifstream("expr_" + std::to_string(i) + ".bin", std::ios::binary);
-            std::string data((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-            exprs.push_back(SymEngine::Basic::loads(data));
+            if (!file) {throw std::runtime_error("Cannot open file");}
+            size_t data_size;
+            file.seekg(0, std::ios::end);
+            data_size = file.tellg();
+            file.seekg(0, std::ios::beg);
+            //std::cout << "expr_" << i << " size: " << data_size << " is being loaded" << std::endl;
+            std::vector<char> buffer(data_size);
+            file.read(buffer.data(), data_size);
+            std::string serialized_data(buffer.begin(), buffer.end());
+            //std::cout << "expr_" << i << " size: " << serialized_data.size() << " data ready, deserializing" << std::endl;
+
+            exprs.push_back(SymEngine::Basic::loads(serialized_data));
             file.close();
+            std::cout << "Loaded expr_" << i << std::endl;
         }
+
+        // sleep for 10 seconds to see the memory usage
+        std::this_thread::sleep_for(std::chrono::seconds(5));
     }
 
 }
