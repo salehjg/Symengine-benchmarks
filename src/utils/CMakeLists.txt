@@ -6,6 +6,7 @@ target_sources(utils
         PUBLIC
         ${CMAKE_CURRENT_LIST_DIR}/timers.h
         ${CMAKE_CURRENT_LIST_DIR}/mem_usage_tracker.h
+        ${CMAKE_CURRENT_LIST_DIR}/visitor_sym.h
 )
 target_include_directories(utils
         PRIVATE

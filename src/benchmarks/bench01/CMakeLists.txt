@@ -5,7 +5,6 @@ target_sources(bench01
         ${CMAKE_CURRENT_LIST_DIR}/bench01.cpp
         PUBLIC
         ${CMAKE_CURRENT_LIST_DIR}/bench01.h
-        ${CMAKE_CURRENT_LIST_DIR}/visitor_sym.h
 )
 target_include_directories(bench01
         PRIVATE
@@ -17,10 +16,9 @@ target_include_directories(bench01
         ${CMAKE_BINARY_DIR}/symengine/symengine/utilities/teuchos/
 )
 target_link_libraries(bench01
-        PRIVATE
-        utils
         PUBLIC
         symengine
+        utils
 )
 
 add_executable(bench01_main bench_main.cpp)

@@ -8,7 +8,7 @@
 #include "symengine/add.h"
 #include "symengine/mul.h"
 #include "symengine/pow.h"
-#include "visitor_sym.h"
+#include "utils/visitor_sym.h"
 
 
 void bench01::Preparation() {
