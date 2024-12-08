@@ -6,7 +6,7 @@
 #include "bench01/bench01.h"
 
 int main() {
-    bench01 b(256, 1024*4, 25);
+    bench01 b(16, 1024*2, 5);
     b.Run();
 
     return 0;

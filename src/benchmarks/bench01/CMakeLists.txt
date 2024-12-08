@@ -5,6 +5,7 @@ target_sources(bench01
         ${CMAKE_CURRENT_LIST_DIR}/bench01.cpp
         PUBLIC
         ${CMAKE_CURRENT_LIST_DIR}/bench01.h
+        ${CMAKE_CURRENT_LIST_DIR}/visitor_sym.h
 )
 target_include_directories(bench01
         PRIVATE

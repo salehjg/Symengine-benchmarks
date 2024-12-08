@@ -8,6 +8,7 @@
 #include "symengine/add.h"
 #include "symengine/mul.h"
 #include "symengine/pow.h"
+#include "visitor_sym.h"
 
 
 void bench01::Preparation() {
@@ -63,6 +64,14 @@ void bench01::Workload() {
         }
     }
 
+    std::cout << "Checking for duplicates (symbols)" << std::endl;
+    {
+        mem_usage_tracker mem_check_duplicates(SAMPLING_INTERVAL_MS, 100, "mem_usage_" + name + ".check_duplicates.txt", true);
+        visitor_sym visitor;
+        auto count_sym = visitor.apply(exprs);
+        std::cout << "Number of duplicate symbols found: " << count_sym << std::endl;
+    }
+
     std::cout << "Wiping everything" << std::endl;
     {
         mem_usage_tracker mem_wipe(SAMPLING_INTERVAL_MS, 100, "mem_usage_" + name + ".wipe.txt", true);
@@ -91,8 +100,16 @@ void bench01::Workload() {
             std::cout << "Loaded expr_" << i << std::endl;
         }
 
-        // sleep for 10 seconds to see the memory usage
+        // sleep for 5 seconds to see the memory usage
         std::this_thread::sleep_for(std::chrono::seconds(5));
+    }
+
+    std::cout << "Checking for duplicates (symbols) again" << std::endl;
+    {
+        mem_usage_tracker mem_check_duplicates(SAMPLING_INTERVAL_MS, 100, "mem_usage_" + name + ".check_duplicates.txt", true);
+        visitor_sym visitor;
+        auto count_sym = visitor.apply(exprs);
+        std::cout << "Number of duplicate symbols found: " << count_sym << std::endl;
     }
 
 }
