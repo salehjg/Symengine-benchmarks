@@ -20,6 +20,7 @@
 
 
 /**
+ * To use this class, SymEngine must be built using the external Cereal library. Otherwise `"symengine/serialize-cereal.h"` won't be available.
  * A class to provide READ/WRITE operations to a file through SymEngine's streaming serializer.
  * The scheme used:
  *  - Generate a ReturnID (RetID).
@@ -55,7 +56,7 @@ protected:
     const bool m_bDebug;
 
     std::mutex m_oMutexOffsets;
-    std::unordered_map<size_t, std::vector<std::streampos>> m_mOffsets;
+    std::unordered_map<size_t, std::vector<std::streampos> > m_mOffsets;
 
     std::streampos m_lOffset = 0;
     std::mutex m_oMutexRetId;
@@ -65,18 +66,19 @@ protected:
     Json::Value m_oFileJson;
     std::fstream m_oFileBin;
 
-    std::unique_ptr<SymEngine::RCPBasicAwareOutputArchive<cereal::PortableBinaryOutputArchive>> m_oArchiveSave;
-    std::unique_ptr<SymEngine::RCPBasicAwareInputArchive<cereal::PortableBinaryInputArchive>> m_oArchiveLoad;
+    std::unique_ptr<SymEngine::RCPBasicAwareOutputArchive<cereal::PortableBinaryOutputArchive> > m_oArchiveSave;
+    std::unique_ptr<SymEngine::RCPBasicAwareInputArchive<cereal::PortableBinaryInputArchive> > m_oArchiveLoad;
 
     class FileError : public std::runtime_error {
     public:
-        FileError(const std::string& msg) : std::runtime_error(msg) {}
+        FileError(const std::string &msg) : std::runtime_error(msg) {
+        }
     };
 
 public:
     CFileWriterBase(
-        const std::string& basePath,
-        const std::string& name,
+        const std::string &basePath,
+        const std::string &name,
         bool load_if_exists,
         bool dbg = false
     ) try : m_sBasePath(basePath),
@@ -84,7 +86,6 @@ public:
             m_sFileJson(basePath + name + ".json"),
             m_sName(name),
             m_bDebug(dbg) {
-
         try {
             bool binExists = false;
             bool jsonExists = false;
@@ -94,26 +95,26 @@ public:
                 binExists = binFile.good();
                 std::ifstream jsonFile(m_sFileJson);
                 jsonExists = jsonFile.good();
-            } catch (const std::exception& e) {
+            } catch (const std::exception &e) {
                 throw FileError("Failed to check file existence: " + std::string(e.what()));
             }
 
             if (binExists && jsonExists && load_if_exists) {
                 try {
                     LoadExistingFiles();
-                } catch (const std::exception& e) {
+                } catch (const std::exception &e) {
                     throw FileError("Failed to load existing files: " + std::string(e.what()));
                 }
             } else {
                 try {
                     CreateNewFiles();
-                } catch (const std::exception& e) {
+                } catch (const std::exception &e) {
                     throw FileError("Failed to create new files: " + std::string(e.what()));
                 }
             }
 
             InitializeArchives();
-        } catch (const std::exception& e) {
+        } catch (const std::exception &e) {
             Cleanup();
             throw;
         }
@@ -128,18 +129,18 @@ public:
             } else {
                 debugPrint("This instance is nuked. No need to write the json file.");
             }
-        } catch (const std::exception& e) {
+        } catch (const std::exception &e) {
             debugPrint("Error in destructor: ", e.what());
         }
     }
 
-    void Append(size_t retId, const std::tuple<Types...>& data) {
+    void Append(size_t retId, const std::tuple<Types...> &data) {
         try {
             std::lock_guard<std::mutex> lock(m_oMutexOffsets);
-            std::apply([&](const Types&... args) {
+            std::apply([&](const Types &... args) {
                 _Append(retId, args...);
             }, data);
-        } catch (const std::exception& e) {
+        } catch (const std::exception &e) {
             throw FileError("Failed to append data: " + std::string(e.what()));
         }
     }
@@ -155,7 +156,7 @@ public:
             }
 
             std::tuple<Types...> data;
-            std::apply([&](Types&... args) {
+            std::apply([&](Types &... args) {
                 std::streampos addr = m_mOffsets[retId][stateIndex];
                 m_oFileBin.seekg(addr);
                 if (!m_oFileBin.good()) {
@@ -164,7 +165,7 @@ public:
                 (*m_oArchiveLoad)(args...);
             }, data);
             return data;
-        } catch (const std::exception& e) {
+        } catch (const std::exception &e) {
             throw FileError("Failed to read data: " + std::string(e.what()));
         }
     }
@@ -173,7 +174,7 @@ public:
         try {
             std::lock_guard<std::mutex> lock(m_oMutexOffsets);
             return m_mOffsets[retId].size();
-        } catch (const std::exception& e) {
+        } catch (const std::exception &e) {
             throw FileError("Failed to get element count: " + std::string(e.what()));
         }
     }
@@ -191,7 +192,7 @@ public:
 
             m_mOffsets.clear();
             m_oFileJson.clear();
-        } catch (const std::exception& e) {
+        } catch (const std::exception &e) {
             throw FileError("Failed to nuke instance: " + std::string(e.what()));
         }
     }
@@ -203,7 +204,7 @@ public:
                 throw FileError("No retId has been generated yet");
             }
             return m_lRetId - 1;
-        } catch (const std::exception& e) {
+        } catch (const std::exception &e) {
             throw FileError("Failed to peek retId: " + std::string(e.what()));
         }
     }
@@ -212,7 +213,7 @@ public:
         try {
             std::lock_guard<std::mutex> lock(m_oMutexRetId);
             return m_lRetId++;
-        } catch (const std::exception& e) {
+        } catch (const std::exception &e) {
             throw FileError("Failed to generate retId: " + std::string(e.what()));
         }
     }
@@ -242,7 +243,7 @@ protected:
             }
 
             debugPrint("Loaded files successfully");
-        } catch (const Json::Exception& e) {
+        } catch (const Json::Exception &e) {
             throw FileError("JSON parsing error: " + std::string(e.what()));
         }
     }
@@ -259,11 +260,13 @@ protected:
 
     void InitializeArchives() {
         try {
-            m_oArchiveSave = std::make_unique<SymEngine::RCPBasicAwareOutputArchive<cereal::PortableBinaryOutputArchive>>(m_oFileBin);
+            m_oArchiveSave = std::make_unique<SymEngine::RCPBasicAwareOutputArchive<
+                cereal::PortableBinaryOutputArchive> >(m_oFileBin);
             m_oFileBin.seekg(0, std::ios::beg);
-            m_oArchiveLoad = std::make_unique<SymEngine::RCPBasicAwareInputArchive<cereal::PortableBinaryInputArchive>>(m_oFileBin);
+            m_oArchiveLoad = std::make_unique<SymEngine::RCPBasicAwareInputArchive<
+                cereal::PortableBinaryInputArchive> >(m_oFileBin);
             m_oFileBin.seekp(m_lOffset);
-        } catch (const std::exception& e) {
+        } catch (const std::exception &e) {
             throw FileError("Failed to initialize archives: " + std::string(e.what()));
         }
     }
@@ -287,18 +290,18 @@ protected:
 
             writer->write(m_oFileJson, &outputFileStream);
             debugPrint("Finished writing bookkeeping data");
-        } catch (const std::exception& e) {
+        } catch (const std::exception &e) {
             debugPrint("Error saving bookkeeping data: ", e.what());
         }
     }
 
-    bool DeleteFileIfExists(const std::string& path) {
+    bool DeleteFileIfExists(const std::string &path) {
         try {
             if (boost::filesystem::exists(path)) {
                 return boost::filesystem::remove(path);
             }
             return true;
-        } catch (const boost::filesystem::filesystem_error& e) {
+        } catch (const boost::filesystem::filesystem_error &e) {
             throw FileError("Filesystem error: " + std::string(e.what()));
         }
     }
@@ -315,7 +318,7 @@ protected:
         }
     }
 
-    void _Append(size_t retId, const Types&... data) {
+    void _Append(size_t retId, const Types &... data) {
         try {
             auto p = m_oFileBin.tellp();
             if (!m_oFileBin.good()) {
@@ -327,7 +330,7 @@ protected:
             m_lOffset = m_oFileBin.tellp();
 
             debugPrint("Appended to retId: ", retId, ", element count: ", m_mOffsets[retId].size());
-        } catch (const std::exception& e) {
+        } catch (const std::exception &e) {
             throw FileError("Failed to append data: " + std::string(e.what()));
         }
     }
@@ -336,34 +339,34 @@ protected:
         try {
             std::lock_guard<std::mutex> lock(m_oMutexOffsets);
             Json::Value root;
-            for (const auto& [retId, addrList] : m_mOffsets) {
+            for (const auto &[retId, addrList]: m_mOffsets) {
                 Json::Value tnJson;
-                for (const auto& addr : addrList) {
+                for (const auto &addr: addrList) {
                     tnJson.append(static_cast<Json::UInt64>(addr));
                 }
                 root[std::to_string(retId)] = tnJson;
             }
             return root;
-        } catch (const std::exception& e) {
+        } catch (const std::exception &e) {
             throw FileError("Failed to serialize offsets: " + std::string(e.what()));
         }
     }
 
-    void DeserializeOffsets(const Json::Value& root) {
+    void DeserializeOffsets(const Json::Value &root) {
         try {
             std::lock_guard<std::mutex> lock(m_oMutexOffsets);
-            for (const auto& retId : root.getMemberNames()) {
+            for (const auto &retId: root.getMemberNames()) {
                 size_t retIdInt = std::stoull(retId);
-                for (const auto& addrJson : root[retId]) {
+                for (const auto &addrJson: root[retId]) {
                     m_mOffsets[retIdInt].push_back(static_cast<std::streampos>(addrJson.asUInt64()));
                 }
             }
-        } catch (const std::exception& e) {
+        } catch (const std::exception &e) {
             throw FileError("Failed to deserialize offsets: " + std::string(e.what()));
         }
     }
 
-    template <typename... Args>
+    template<typename... Args>
     void debugPrint(Args... args) {
         if (m_bDebug) {
             try {

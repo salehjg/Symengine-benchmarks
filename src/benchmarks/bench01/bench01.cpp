@@ -68,7 +68,7 @@ void bench01::Workload() {
     {
         mem_usage_tracker mem_check_duplicates(SAMPLING_INTERVAL_MS, 100, "mem_usage_" + name + ".check_duplicates.txt", true);
         visitor_sym visitor;
-        auto count_sym = visitor.apply(exprs);
+        auto count_sym = visitor.apply({exprs[0]});
         std::cout << "Number of duplicate symbols found: " << count_sym << std::endl;
     }
 
@@ -108,7 +108,7 @@ void bench01::Workload() {
     {
         mem_usage_tracker mem_check_duplicates(SAMPLING_INTERVAL_MS, 100, "mem_usage_" + name + ".check_duplicates.txt", true);
         visitor_sym visitor;
-        auto count_sym = visitor.apply(exprs);
+        auto count_sym = visitor.apply({exprs[0], exprs[1]});
         std::cout << "Number of duplicate symbols found: " << count_sym << std::endl;
     }
 
